@@ -1,12 +1,15 @@
 package med.voll.api.paciente;
 
 import jakarta.persistence.*;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import med.voll.api.endereco.DadosEndereco;
 import med.voll.api.endereco.Endereco;
+
+import java.util.Objects;
 
 @Entity(name = "Paciente")
 @Table(name = "pacientes")
@@ -27,11 +30,30 @@ public class Paciente {
     @Embedded
     private Endereco endereco;
 
-    public Paciente (DadosCadastroPaciente dados) {
+    private Boolean ativo;
+
+    public Paciente(DadosCadastroPaciente dados) {
+        this.ativo = true;
         this.nome = dados.nome();
         this.cpf = dados.cpf();
         this.telefone = dados.telefone();
         this.email = dados.email();
         this.endereco = new Endereco(dados.endereco());
+    }
+
+    public void atualizarInformacoes(@Valid DadosAtualizacaoPaciente dados) {
+        if (Objects.nonNull(dados.nome())) {
+            this.nome = dados.nome();
+        }
+        if (Objects.nonNull(dados.telefone())) {
+            this.telefone = dados.telefone();
+        }
+        if (Objects.nonNull(dados.endereco())) {
+            this.endereco.atualizarInformacoes(dados.endereco());
+        }
+    }
+
+    public void excluir() {
+        this.ativo = false;
     }
 }

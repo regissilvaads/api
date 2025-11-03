@@ -9,7 +9,7 @@ public record DadosEndereco(
         @NotBlank
         String bairro,
         @NotBlank
-        @Pattern(regexp = "\\d{8}")
+        @Pattern(regexp = "\\d{8}", message = "Deve conter 8 caracteres")
         String cep,
         @NotBlank
         String cidade,

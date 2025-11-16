@@ -2,7 +2,8 @@ package med.voll.api.domain.cosulta;
 
 import jakarta.validation.Valid;
 import med.voll.api.domain.ValidacaoException;
-import med.voll.api.domain.cosulta.validacoes.ValidadorAgendamentoDeConsulta;
+import med.voll.api.domain.cosulta.validacoes.agendamento.ValidadorAgendamentoDeConsulta;
+import med.voll.api.domain.cosulta.validacoes.cancelamento.ValidadorCancelamentoDeConsulta;
 import med.voll.api.domain.medico.Medico;
 import med.voll.api.domain.medico.MedicoRepository;
 import med.voll.api.domain.paciente.PacienteRepository;
@@ -25,6 +26,9 @@ public class AgendaDeConsultas {
 
     @Autowired
     private List<ValidadorAgendamentoDeConsulta> validadores;
+
+    @Autowired
+    private List<ValidadorCancelamentoDeConsulta> validadorCancelamento;
 
     public DadosDetalhamentoConsulta agendar(DadosAgendamentoConsulta dados) {
         if (!pacienteRepository.existsById(dados.idPaciente())) {
@@ -64,6 +68,7 @@ public class AgendaDeConsultas {
             throw new ValidacaoException("Id da consulta informada não existe!");
         }
 
+        validadorCancelamento.forEach(v -> v.validar(dados));
         var consulta = consultaRepository.getReferenceById(dados.idConsulta());
         consulta.cancelar(dados.motivo());
     }

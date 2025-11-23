@@ -1,8 +1,8 @@
 package med.voll.api.controller;
 
-import med.voll.api.domain.medico.DadosCadastroMedico;
-import med.voll.api.domain.medico.DadosDetalhamentoMedico;
-import med.voll.api.domain.medico.MedicoRepository;
+import med.voll.api.domain.endereco.DadosEndereco;
+import med.voll.api.domain.endereco.Endereco;
+import med.voll.api.domain.medico.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,12 +11,15 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 @SpringBootTest
@@ -45,6 +48,54 @@ class MedicoControllerTest {
 
         assertThat(response.getStatus())
                 .isEqualTo(HttpStatus.BAD_REQUEST.value());
+    }
+
+    @Test
+    @DisplayName("Deveria devolver codigo http 201 quando informações estao validas")
+    @WithMockUser
+    void cadastrar_cenario2() throws Exception {
+        var dadosCadastroMedico = new DadosCadastroMedico(
+                "Medico 1",
+                "medico1@gmail.com",
+                "44999999999",
+                "123456",
+                Especialidade.ORTOPEDIA,
+                dadosEndereco());
+
+        when(repository.save(any())).thenReturn(new Medico(dadosCadastroMedico));
+
+        var response = mvc.perform(post("/medicos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(dadosCadastroMedicoJson.write(dadosCadastroMedico).getJson()))
+                .andReturn().getResponse();
+
+        var dadosDetalhamento = new DadosDetalhamentoMedico(
+                null,
+                dadosCadastroMedico.nome(),
+                dadosCadastroMedico.email(),
+                dadosCadastroMedico.telefone(),
+                dadosCadastroMedico.crm(),
+                dadosCadastroMedico.especialidade(),
+                new Endereco(dadosCadastroMedico.endereco())
+        );
+
+        var jsonEsperado = dadosDetalhamentoMedicoJson.write(dadosDetalhamento).getJson();
+
+        assertThat(response.getStatus())
+                .isEqualTo(HttpStatus.CREATED.value());
+        assertThat(response.getContentAsString()).isEqualTo(jsonEsperado);
+    }
+
+    private DadosEndereco dadosEndereco() {
+        return new DadosEndereco(
+                "rua xpto",
+                "bairro",
+                "00000000",
+                "Brasilia",
+                "DF",
+                "CASA",
+                "30"
+        );
     }
 
 }
